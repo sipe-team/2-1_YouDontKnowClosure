@@ -1,15 +1,29 @@
 const WooReact = (() => {
   let idx = 0;
-  let hooks = [];
+  let hookValues = [];
 
   const useState = (initialState) => {
-    hooks[idx] = hooks[idx] || initialState;
+    hookValues[idx] = hookValues[idx] || initialState;
     const currentIndex = idx; // idx를 훅끼리 같이 쓰므로 분리해줘야 함
     const setState = (newState) => {
-      hooks[currentIndex] = newState;
+      hookValues[currentIndex] = newState;
     };
 
-    return [hooks[idx++], setState];
+    return [hookValues[idx++], setState];
+  };
+
+  const useEffect = (callback, dependencyArray) => {
+    const hasNoDependencyArray = !dependencyArray;
+    const currentHooks = hookValues[idx];
+    const isDependencyArrayChanged = currentHooks
+      ? dependencyArray.some((el, i) => currentHooks[i] !== el)
+      : true;
+
+    if (hasNoDependencyArray || isDependencyArrayChanged) {
+      callback();
+      hookValues[idx] = dependencyArray;
+    }
+    idx++;
   };
 
   const render = (component) => {
@@ -19,7 +33,7 @@ const WooReact = (() => {
     return Comp;
   };
 
-  return { useState, render };
+  return { useState, useEffect, render };
 })();
 
 const funcComp = () => {
@@ -35,8 +49,12 @@ const funcComp = () => {
   };
 
   const render = () => {
-    console.log("count", count, "count2", count2);
+    console.log(`count ${count} count2 ${count2}`);
   };
+
+  WooReact.useEffect(() => {
+    console.log(`count2 value is changed ${count2}`);
+  }, [count2]);
 
   return {
     render,
