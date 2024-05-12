@@ -1,19 +1,21 @@
 const WooReact = (() => {
-  let _state = [];
+  let idx = 0;
+  let hooks = [];
 
   const useState = (initialState) => {
-    _state = _state || initialState;
-
+    hooks[idx] = hooks[idx] || initialState;
+    const currentIndex = idx; // idx를 훅끼리 같이 쓰므로 분리해줘야 함
     const setState = (newState) => {
-      _state = newState;
+      hooks[currentIndex] = newState;
     };
 
-    return [_state, setState];
+    return [hooks[idx++], setState];
   };
 
   const render = (component) => {
     const Comp = component();
     Comp.render();
+    idx = 0; // 이 구문의 실행 순서에 따라 결과가 달라지는데 좀 열받음
     return Comp;
   };
 
